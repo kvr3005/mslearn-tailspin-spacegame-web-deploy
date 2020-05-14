@@ -7,6 +7,7 @@ variables:
   dotnetSdkVersion: '3.1.100'
 
 #-----Build Stage ---
+  
   stages:
     - stage: 'Build'
       displayName: 'Build the web application'
