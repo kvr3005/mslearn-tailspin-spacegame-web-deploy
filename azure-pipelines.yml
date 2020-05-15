@@ -104,7 +104,7 @@ stages:
                 appName: '$(WebAppNameDev)'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
   - stage: 'Test'
-    displayName: 'Deploy to the dev environment'
+    displayName: 'Deploy to the test environment'
     dependsOn: dev
     #condition: eq(variables['Build.Reason'],'Schedule')
     jobs:
@@ -124,5 +124,5 @@ stages:
                 displayName: 'Azure App Service Deploy: website'
                 inputs:
                   azureSubscription: 'Resource Manager - Tailspin - Space Game'
-                  appName: '$(WebAppNameDev)'
+                  appName: '$(WebAppNameTest)'
                   package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
