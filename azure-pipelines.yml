@@ -25,11 +25,11 @@ stages:
         demands:
           - npm
   
-        variables:
+      variables:
           wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
           dotnetSdkVersion: '3.1.100'
     
-        steps:
+      steps:
         - task: UseDotNet@2
           displayName: 'Use .NET Core SDK $(dotnetSdkVersion)'
           inputs:
@@ -73,7 +73,8 @@ stages:
             zipAfterPublish: true
     
         - publish: '$(Build.ArtifactStagingDirectory)'
-          artifact: drop
+          artifact: drop 
+
     #####-------------Deploy--------
   - stage: 'Dev'
     displayName: 'Deploy to the dev environment'
@@ -103,6 +104,7 @@ stages:
                 azureSubscription: 'Resource Manager - Tailspin - Space Game'
                 appName: '$(WebAppNameDev)'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+
   - stage: 'Test'
     displayName: 'Deploy to the test environment'
     dependsOn: Dev
