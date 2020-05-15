@@ -6,19 +6,25 @@ variables:
   wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
   dotnetSdkVersion: '3.1.100'
   releaseBranchName: 'release-pipeline' #Created new variable for New branch
-
+schedules:
+  - cron: '0 3 * * *'
+    displayName: 'Deploy everydat at 3 am'
+    branches: 
+     include:
+       - 'release-pipeline'
+    always: false  
 #-----Build Stage ---
 stages:
-    - stage: 'Build'
-      displayName: 'Build the web application'
-      jobs: 
-      - job: 'Build'
-        displayName: 'Build job'
-        pool:
-          vmImage: 'ubuntu-16.04'
-          demands:
-            - npm
-    
+  - stage: 'Build'
+    displayName: 'Build the web application'
+    jobs: 
+    - job: 'Build'
+      displayName: 'Build job'
+      pool:
+        vmImage: 'ubuntu-16.04'
+        demands:
+          - npm
+  
         variables:
           wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
           dotnetSdkVersion: '3.1.100'
@@ -69,23 +75,46 @@ stages:
         - publish: '$(Build.ArtifactStagingDirectory)'
           artifact: drop
     #####-------------Deploy--------
-    - stage: 'Dev'
-      displayName: 'Deploy to the dev environment'
-      dependsOn: Build
-      condition: |
-        and
-        (
-          succeeded(),
-          eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
-        )
-      jobs:
-      - deployment: Deploy
-        pool:
-          vmImage: 'ubuntu-16.04'
-        environment: dev
+  - stage: 'Dev'
+    displayName: 'Deploy to the dev environment'
+    dependsOn: Build
+    condition: |
+      and
+      (
+        succeeded(),
+        eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
+      )
+    jobs:
+    - deployment: Deploy
+      pool:
+        vmImage: 'ubuntu-16.04'
+      environment: dev
+      variables:
+      - group: Release
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - download: current
+              artifact: drop
+            - task: AzureWebApp@1
+              displayName: 'Azure App Service Deploy: website'
+              inputs:
+                azureSubscription: 'Resource Manager - Tailspin - Space Game'
+                appName: '$(WebAppNameDev)'
+                package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+  - stage: 'Test'
+    displayName: 'Deploy to the dev environment'
+    dependsOn: dev
+    condition: eq(variables['Build.Reason'],'Schedule')
+    jobs:
+    - deployment: Deploy
+      pool:
+        vmImage: 'ubuntu-16.04'
+        environment: test
         variables:
         - group: Release
-        strategy:
+          strategy:
           runOnce:
             deploy:
               steps:
